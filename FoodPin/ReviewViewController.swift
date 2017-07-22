@@ -12,6 +12,10 @@ class ReviewViewController: UIViewController {
 
     @IBOutlet var backgroundImageView: UIImageView!
     @IBOutlet var containerView: UIView!
+    @IBOutlet var restaurantImagemView: UIImageView!
+    @IBOutlet var closeButton: UIButton!
+    
+    var restaurant: Restaurant!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,10 +26,32 @@ class ReviewViewController: UIViewController {
         blurEffectView.frame = view.bounds
         backgroundImageView.addSubview(blurEffectView)
         
-        containerView.transform = CGAffineTransform.init(scaleX: 0, y: 0)
+        self.restaurantImagemView.image = UIImage(named: restaurant.image)
+        
+        let scaleTransform = CGAffineTransform.init(scaleX: 0, y: 0)
+        let translateTransform = CGAffineTransform.init(translationX: 0, y: -1000)
+        let combineTransform   = scaleTransform.concatenating(translateTransform)
+        
+        self.containerView.transform = combineTransform
+        
+        self.closeButton.transform = CGAffineTransform.init(translationX: 1000, y: 0)
     }
     
     
+    override func viewDidAppear(_ animated: Bool) {
+        
+        UIView.animate(withDuration: 0.1, animations: {
+            self.containerView.transform = CGAffineTransform.identity
+        })
+        
+        
+        UIView.animate(withDuration: 0.5, delay: 0.5, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.3, options: .curveEaseInOut, animations: {
+            self.closeButton.transform = CGAffineTransform.identity
+            
+        }, completion: nil)
+    }
+    
+        
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
