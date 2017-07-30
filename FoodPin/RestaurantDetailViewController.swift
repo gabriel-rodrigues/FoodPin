@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MapKit
 
 class RestaurantDetailViewController: UIViewController {
 
@@ -15,6 +16,7 @@ class RestaurantDetailViewController: UIViewController {
     @IBOutlet var tipoLabel: UILabel!
     @IBOutlet var localLabel: UILabel!
     @IBOutlet var tableView: UITableView!
+    @IBOutlet var mapView: MKMapView!
     
     var restaurant: Restaurant!
     
@@ -28,11 +30,43 @@ class RestaurantDetailViewController: UIViewController {
         restaurantImageView.image = UIImage(named: restaurant.image)
 
         tableView.backgroundColor = UIColor(red: 240.0/255, green: 240.0/255.0, blue: 240.0/255.0, alpha: 0.2)
-        tableView.tableFooterView = UIView(frame: CGRect.zero)
         tableView.separatorColor  = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 0.8)
         tableView.estimatedRowHeight = 36.0
         tableView.rowHeight = UITableViewAutomaticDimension
         
+        
+        let tapGestureReconizer = UITapGestureRecognizer(target: self, action: #selector(showMap))
+        mapView.addGestureRecognizer(tapGestureReconizer)
+        
+        let geoCorder = CLGeocoder()
+        geoCorder.geocodeAddressString(restaurant.location) { (placemarks, error) in
+            if error != nil {
+                print(error!)
+                return
+            }
+            
+            if let placemarks = placemarks {
+                
+                let placemark = placemarks[0]
+                let annotation = MKPointAnnotation()
+                
+                if let location = placemark.location {
+                    annotation.coordinate = location.coordinate
+                    self.mapView.addAnnotation(annotation)
+                    
+                    // set the zoom level
+                    let region = MKCoordinateRegionMakeWithDistance(annotation.coordinate, 250, 250)
+                    self.mapView.setRegion(region, animated: false)
+                }
+                
+            }
+        }
+        
+    }
+    
+    func showMap() {
+        
+        self.performSegue(withIdentifier: "showMap", sender: self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -74,7 +108,12 @@ class RestaurantDetailViewController: UIViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
-        if let controller = segue.destination as? ReviewViewController {
+        if segue.identifier == "showReview" {
+         let controller = segue.destination as! ReviewViewController
+            controller.restaurant = restaurant
+        }
+        else if segue.identifier == "showMap" {
+            let controller = segue.destination as! MapViewController
             controller.restaurant = restaurant
         }
     }
