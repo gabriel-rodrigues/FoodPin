@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class AddRestaurantController: UITableViewController {
 
@@ -14,12 +15,15 @@ class AddRestaurantController: UITableViewController {
     @IBOutlet var nameTextField: UITextField!
     @IBOutlet var typeTextField: UITextField!
     @IBOutlet var locationTextField: UITextField!
+    @IBOutlet var phoneTextField: UITextField!
     @IBOutlet var yesButton: UIButton!
     @IBOutlet var noButton: UIButton!
     
     private var haveHere = true
     private var colorWhenIsSelected: UIColor!
     private var colorWhenIsNotSelected: UIColor!
+    
+    private var restaurant: RestaurantMO!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,9 +58,10 @@ class AddRestaurantController: UITableViewController {
         let nameIsEmpty     = nameTextField.text!.isEmpty
         let typeIsEmpty     = typeTextField.text!.isEmpty
         let locationIsEmpty = locationTextField.text!.isEmpty
+        let phoneIsEmpty    = phoneTextField.text!.isEmpty
         
         
-        if nameIsEmpty || typeIsEmpty || locationIsEmpty {
+        if nameIsEmpty || typeIsEmpty || locationIsEmpty || phoneIsEmpty {
             let alertController = UIAlertController(title: "Oops",
                                                     message: "We can'n proceed because one of the field is blank. Please note that all fields are required",
                                                     preferredStyle: .alert)
@@ -70,6 +75,27 @@ class AddRestaurantController: UITableViewController {
             self.present(alertController, animated: true, completion: nil)
         }
         else {
+            
+            if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+                restaurant = RestaurantMO(context: appDelegate.persistentContainer.viewContext)
+                
+                restaurant.name      = nameTextField.text
+                restaurant.type      = typeTextField.text
+                restaurant.location  = locationTextField.text
+                restaurant.phone     = phoneTextField.text
+                restaurant.isVisited = haveHere
+                
+                if let restaurantImage = photoImagemView.image {
+                    if let imageData   = UIImagePNGRepresentation(restaurantImage) {
+                        restaurant.image = NSData(data: imageData)
+                    }
+                }
+                
+                
+                print("Saving data to context...")
+                appDelegate.saveContext()
+            }
+            
             self.performSegue(withIdentifier: "unwindToHomeScreen", sender: self)
         }
     }
@@ -77,7 +103,7 @@ class AddRestaurantController: UITableViewController {
     @IBAction func handlerHaveHere(_ sender: UIButton) {
         
         if sender == yesButton {
-            haveHere = true
+            haveHere                  = true
             yesButton.backgroundColor = colorWhenIsSelected
             noButton.backgroundColor  = colorWhenIsNotSelected
         }

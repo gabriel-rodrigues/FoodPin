@@ -18,7 +18,7 @@ class RestaurantDetailViewController: UIViewController {
     @IBOutlet var tableView: UITableView!
     @IBOutlet var mapView: MKMapView!
     
-    var restaurant: Restaurant!
+    var restaurant: RestaurantMO!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,7 +27,7 @@ class RestaurantDetailViewController: UIViewController {
         
         title = restaurant.name
         
-        restaurantImageView.image = UIImage(named: restaurant.image)
+        restaurantImageView.image = UIImage(data: restaurant.image! as Data)
 
         tableView.backgroundColor = UIColor(red: 240.0/255, green: 240.0/255.0, blue: 240.0/255.0, alpha: 0.2)
         tableView.separatorColor  = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 0.8)
@@ -39,7 +39,7 @@ class RestaurantDetailViewController: UIViewController {
         mapView.addGestureRecognizer(tapGestureReconizer)
         
         let geoCorder = CLGeocoder()
-        geoCorder.geocodeAddressString(restaurant.location) { (placemarks, error) in
+        geoCorder.geocodeAddressString(restaurant.location!) { (placemarks, error) in
             if error != nil {
                 print(error!)
                 return
@@ -103,6 +103,10 @@ class RestaurantDetailViewController: UIViewController {
             tableView.reloadData()
         }
     
+        
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+            appDelegate.saveContext()
+        }
     }
     
     
@@ -148,7 +152,19 @@ extension RestaurantDetailViewController : UITableViewDataSource {
             cell.valueLabel.text = restaurant.phone
         case 4:
             cell.fieldLabel.text = "Been here"
-            cell.valueLabel.text = restaurant.isVisited ? "Yes, I've been here before. \(restaurant.rating)" : "No"
+            
+            if restaurant.isVisited {
+                if let rating = restaurant.rating {
+                    cell.valueLabel.text = "Yes, I've been here before. \(rating)"
+                }
+                else {
+                    cell.valueLabel.text = "Yes, I've been here before."
+                }
+            }
+            else {
+                cell.valueLabel.text  = "No"
+            }
+            
         default:
             cell.fieldLabel.text = ""
             cell.valueLabel.text = ""
